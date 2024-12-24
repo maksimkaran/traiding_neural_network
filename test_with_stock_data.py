@@ -73,29 +73,33 @@ def loss_deriv(input,y):
     return deriv
 
 #finds all the filepaths for all of the .csv files in the training data folder
-filepaths = [file for file in glob.glob(f'D:/bruh/trading_deep_learning/train_data/*.csv')]
+filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_network/train_data/*.csv')]
 step_size = 0.0001
 
 #randomly initializing the weights and setting the biases to 0
 weights1 = np.random.rand(20,14)
-weights2 = np.random.rand(10,20)
-weights3 = np.random.rand(2,10)
+weights2 = np.random.rand(20,20)
+weights3 = np.random.rand(10,20)
+weights4 = np.random.rand(2,10)
 biases1 = np.zeros((1, 20))
-biases2 = np.zeros((1, 10))
-biases3 = np.zeros((1, 2))
+biases2 = np.zeros((1, 20))
+biases3 = np.zeros((1, 10))
+biases4 = np.zeros((1, 2))
 
 weights1 = np.array(weights1)
 weights2 = np.array(weights2)
 weights3 = np.array(weights3)
+weights4 = np.array(weights4)
 biases1 = np.array(biases1)
 biases2 = np.array(biases2)
 biases3 = np.array(biases3)
+biases4 = np.array(biases4)
 
 accuracy_avg = 0
 update_frequency = 1 #this is freqently the drivatives will be added to the weights and biases
 for i in tqdm(range(100)): #arbitrairy number of itterations 
     counter = 0
-    w1=w2=w3=b1=b2=b3 = 0
+    w1=w2=w3=w4=b1=b2=b3=b4 = 0
     accuracy = 0
     for file_path in filepaths:#for every ticker we find the derivatives
         
@@ -106,17 +110,24 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         z2 = add_w_and_b(hidden1,weights2,biases2)
         hidden2 = relu(z2)
         z3 = add_w_and_b(hidden2,weights3,biases3)
-        hidden3 = softmax(z3)
-        ccentropy_loss = loss(hidden3,y)
+        hidden3 = relu(z3)
+        z4 = add_w_and_b(hidden3,weights4,biases4)
+        hidden4 = softmax(z4)
+        ccentropy_loss = loss(hidden4,y)
         mean_ccentropy_loss = mean_loss(ccentropy_loss)
         #we made the forward step in the lines above and now we are propagating backwards and getting the derivatives
         hidden1_deriv = relu_deriv(hidden1)
         hidden2_deriv = relu_deriv(hidden2)
-        
+        hidden3_deriv = relu_deriv(hidden3)
         
 
-        lossDz3 =  loss_deriv(hidden3,y)
+        lossDz4 =  loss_deriv(hidden4,y)
+        lossDweights4 = np.dot(lossDz4.T,weight_deriv(hidden3))
+        lossDbiases4 = np.sum(lossDz4,axis=0)
+        lossDbiases4 = lossDbiases4.reshape((len(lossDbiases4), 1))
 
+        lossDhidden3 = np.dot(lossDz4,weight_deriv(weights4))
+        lossDz3 = np.multiply(lossDhidden3,hidden3_deriv)
         lossDweights3 = np.dot(lossDz3.T,weight_deriv(hidden2))
         lossDbiases3 = np.sum(lossDz3,axis=0)
         lossDbiases3 = lossDbiases3.reshape((len(lossDbiases3), 1))
@@ -127,6 +138,7 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         lossDbiases2 = np.sum(lossDz2,axis=0)
         lossDbiases2 = lossDbiases2.reshape((len(lossDbiases2), 1))
 
+
         lossDhidden1 = np.dot(lossDz2,weight_deriv(weights2))
         lossDz1 = np.multiply(lossDhidden1,hidden1_deriv)
         lossDweights1 = np.dot(lossDz1.T,weight_deriv(x))
@@ -134,7 +146,7 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         lossDbiases1 = lossDbiases1.reshape((len(lossDbiases1), 1))
 
         samples = len(y)
-        clipped_input = np.clip(hidden3,1e-7,1-1e-7)
+        clipped_input = np.clip(hidden4,1e-7,1-1e-7)
         correct_confidences = clipped_input[range(samples),y]
         #finding the accuracy
         for x in correct_confidences:
@@ -147,23 +159,28 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         w1 += lossDweights1
         w2 += lossDweights2
         w3 += lossDweights3
+        w4 += lossDweights4
         b1 += lossDbiases1.T
         b2 += lossDbiases2.T
         b3 += lossDbiases3.T
+        b4 += lossDbiases4.T
         #updating the weights and biases
         if counter % update_frequency == 0:
             weights1 -= (w1/update_frequency)*step_size
             weights2 -= (w2/update_frequency)*step_size
             weights3 -= (w3/update_frequency)*step_size
+            weights4 -= (w4/update_frequency)*step_size
             biases1 -= (b1/update_frequency)*step_size
             biases2 -= (b2/update_frequency)*step_size
             biases3 -= (b3/update_frequency)*step_size
-            w1=w2=w3=b1=b2=b3 = 0
+            biases4 -= (b4/update_frequency)*step_size
+            w1=w2=w3=w4=b1=b2=b3=b4 = 0
 
     accuracy_avg = accuracy_avg/len(filepaths)
     print("\n",accuracy_avg)
+
     if i % 10 == 0:
-        step_size *= 0.9
+        step_size *= 0.98
     
     if i% 6 == 0:
         
@@ -187,9 +204,12 @@ for file_path1 in tqdm(filepaths1):
     hidden2 = relu(z2)
 
     z3 = add_w_and_b(hidden2,weights3,biases3)
-    hidden3 = softmax(z3)
+    hidden3 = relu(z3)
 
-    ccentropy_loss = loss(hidden3,y1)
+    z4 = add_w_and_b(hidden3,weights4,biases4)
+    hidden4 = softmax(z4)
+
+    ccentropy_loss = loss(hidden4,y1)
 
     mean_ccentropy_loss = mean_loss(ccentropy_loss)
     mean_average_loss +=mean_ccentropy_loss
