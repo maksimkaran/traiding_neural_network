@@ -23,12 +23,12 @@ def find_values(file_path):
 
     return X,Y
 
-def standardise_input(input):
+'''def standardise_input(input):
     #just a standardisation function that returns values which are usualy between -3 and 3
     std = np.sum((input-input.mean())**2)/len(input)
     std = np.sqrt(std)
     output = ((input-input.mean()))/std
-    return output
+    return output'''
 
 def add_w_and_b(input,w,b):
     #adds the weights and biases for the given input 
@@ -68,7 +68,8 @@ def softmax(output_layer):
 
 def loss_deriv(input,y):
     #derivative of loss
-    result = np.array([[1, 0] if i % 2 == 0 else [0, 1] for i in range(len(y))])
+    result = [[0, 1] if x == 2 else [1, 0] for x in y]
+    result = np.array(result)
     deriv = input - result
     return deriv
 
@@ -77,30 +78,34 @@ filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_net
 step_size = 0.0001
 
 #randomly initializing the weights and setting the biases to 0
-weights1 = np.random.rand(20,14)
-weights2 = np.random.rand(20,20)
-weights3 = np.random.rand(10,20)
-weights4 = np.random.rand(2,10)
+weights1 = np.random.uniform(low=-1, high=1, size=(20,14))
+weights2 = np.random.uniform(low=-1, high=1, size=(20,20))
+weights3 = np.random.uniform(low=-1, high=1, size=(20,20))
+weights4 = np.random.uniform(low=-1, high=1, size=(20,20))
+weights5 = np.random.uniform(low=-1, high=1, size=(2,20))
 biases1 = np.zeros((1, 20))
 biases2 = np.zeros((1, 20))
-biases3 = np.zeros((1, 10))
-biases4 = np.zeros((1, 2))
+biases3 = np.zeros((1, 20))
+biases4 = np.zeros((1, 20))
+biases5 = np.zeros((1, 2))
 
 weights1 = np.array(weights1)
 weights2 = np.array(weights2)
 weights3 = np.array(weights3)
 weights4 = np.array(weights4)
+weights5 = np.array(weights5)
 biases1 = np.array(biases1)
 biases2 = np.array(biases2)
 biases3 = np.array(biases3)
 biases4 = np.array(biases4)
-
+biases5 = np.array(biases5)
 accuracy_avg = 0
-update_frequency = 1 #this is freqently the drivatives will be added to the weights and biases
+update_frequency = 20 #this is freqently the drivatives will be added to the weights and biases
 for i in tqdm(range(100)): #arbitrairy number of itterations 
     counter = 0
-    w1=w2=w3=w4=b1=b2=b3=b4 = 0
+    w1=w2=w3=w4=w5=b1=b2=b3=b4=b5 = 0
     accuracy = 0
+    helper = 0
     for file_path in filepaths:#for every ticker we find the derivatives
         
         x,y = find_values(file_path)
@@ -112,16 +117,25 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         z3 = add_w_and_b(hidden2,weights3,biases3)
         hidden3 = relu(z3)
         z4 = add_w_and_b(hidden3,weights4,biases4)
-        hidden4 = softmax(z4)
-        ccentropy_loss = loss(hidden4,y)
+        hidden4 = relu(z4)
+        z5 = add_w_and_b(hidden4,weights5,biases5)
+        hidden5 = softmax(z5)
+        ccentropy_loss = loss(hidden5,y)
+        #print(ccentropy_loss)
         mean_ccentropy_loss = mean_loss(ccentropy_loss)
         #we made the forward step in the lines above and now we are propagating backwards and getting the derivatives
         hidden1_deriv = relu_deriv(hidden1)
         hidden2_deriv = relu_deriv(hidden2)
         hidden3_deriv = relu_deriv(hidden3)
-        
+        hidden4_deriv = relu_deriv(hidden4)
 
-        lossDz4 =  loss_deriv(hidden4,y)
+        lossDz5 =  loss_deriv(hidden5,y)
+        lossDweights5 = np.dot(lossDz5.T,weight_deriv(hidden4))
+        lossDbiases5 = np.sum(lossDz5,axis=0)
+        lossDbiases5 = lossDbiases5.reshape((len(lossDbiases5), 1))
+
+        lossDhidden4 = np.dot(lossDz5,weight_deriv(weights5))
+        lossDz4 = np.multiply(lossDhidden4,hidden4_deriv)
         lossDweights4 = np.dot(lossDz4.T,weight_deriv(hidden3))
         lossDbiases4 = np.sum(lossDz4,axis=0)
         lossDbiases4 = lossDbiases4.reshape((len(lossDbiases4), 1))
@@ -146,7 +160,7 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         lossDbiases1 = lossDbiases1.reshape((len(lossDbiases1), 1))
 
         samples = len(y)
-        clipped_input = np.clip(hidden4,1e-7,1-1e-7)
+        clipped_input = np.clip(hidden5,1e-7,1-1e-7)
         correct_confidences = clipped_input[range(samples),y]
         #finding the accuracy
         for x in correct_confidences:
@@ -160,32 +174,42 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         w2 += lossDweights2
         w3 += lossDweights3
         w4 += lossDweights4
+        w5 += lossDweights5
         b1 += lossDbiases1.T
         b2 += lossDbiases2.T
         b3 += lossDbiases3.T
         b4 += lossDbiases4.T
+        b5 += lossDbiases5.T
+
         #updating the weights and biases
         if counter % update_frequency == 0:
+            #print(w1,w2,w3,w4,w5,b1,b2,b3,b4,b5)
+            
+            helper -= (w1/update_frequency)*step_size
+            
             weights1 -= (w1/update_frequency)*step_size
             weights2 -= (w2/update_frequency)*step_size
             weights3 -= (w3/update_frequency)*step_size
             weights4 -= (w4/update_frequency)*step_size
+            weights5 -= (w5/update_frequency)*step_size
             biases1 -= (b1/update_frequency)*step_size
             biases2 -= (b2/update_frequency)*step_size
             biases3 -= (b3/update_frequency)*step_size
             biases4 -= (b4/update_frequency)*step_size
-            w1=w2=w3=w4=b1=b2=b3=b4 = 0
-
+            biases5 -= (b5/update_frequency)*step_size
+            w1=w2=w3=w4=w5=b1=b2=b3=b4=b5 = 0
+    
     accuracy_avg = accuracy_avg/len(filepaths)
+   
     print("\n",accuracy_avg)
-
+    accuracy_avg = 0
     if i % 10 == 0:
-        step_size *= 0.98
+        step_size *= 1
     
     if i% 6 == 0:
         
         #print("\n",accuracy_avg/5)
-        accuracy_avg = 0
+        
         print(f"sum_loss: {np.sum(ccentropy_loss)}")
         print(f"mean_loss: {mean_ccentropy_loss}\n")
     
@@ -207,9 +231,12 @@ for file_path1 in tqdm(filepaths1):
     hidden3 = relu(z3)
 
     z4 = add_w_and_b(hidden3,weights4,biases4)
-    hidden4 = softmax(z4)
+    hidden4 = relu(z4)
 
-    ccentropy_loss = loss(hidden4,y1)
+    z5 = add_w_and_b(hidden4,weights5,biases5)
+    hidden5 = softmax(z5)
+
+    ccentropy_loss = loss(hidden5,y1)
 
     mean_ccentropy_loss = mean_loss(ccentropy_loss)
     mean_average_loss +=mean_ccentropy_loss

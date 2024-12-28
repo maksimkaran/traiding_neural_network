@@ -56,7 +56,7 @@ def get_buy_signal_and_standardise():
         long_entry_condition = pd.Series([])
         for i in candle_data.index:
             try:
-                long_entry_condition = candle_data.shift(-5).close+(candle_data.open*0.02) > candle_data.open
+                long_entry_condition = candle_data.shift(-2).close+(candle_data.open*0.02) > candle_data.open
             except:
                 print("final trades")
 
