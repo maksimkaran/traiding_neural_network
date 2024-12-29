@@ -20,7 +20,6 @@ def find_values(file_path):
     X = data
     X = X.to_numpy()
     Y = Y.to_numpy()
-
     return X,Y
 
 '''def standardise_input(input):
@@ -68,21 +67,21 @@ def softmax(output_layer):
 
 def loss_deriv(input,y):
     #derivative of loss
-    result = [[0, 1] if x == 2 else [1, 0] for x in y]
+    result = [[0, 1] if x == 1 else [1, 0] for x in y]
     result = np.array(result)
     deriv = input - result
     return deriv
 
 #finds all the filepaths for all of the .csv files in the training data folder
 filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_network/train_data/*.csv')]
-step_size = 0.0001
+step_size = 0.00001
 
 #randomly initializing the weights and setting the biases to 0
-weights1 = np.random.uniform(low=-1, high=1, size=(20,14))
-weights2 = np.random.uniform(low=-1, high=1, size=(20,20))
-weights3 = np.random.uniform(low=-1, high=1, size=(20,20))
-weights4 = np.random.uniform(low=-1, high=1, size=(20,20))
-weights5 = np.random.uniform(low=-1, high=1, size=(2,20))
+weights1 = np.random.uniform(low=-0.5, high=0.5, size=(20,14))
+weights2 = np.random.uniform(low=-0.5, high=0.5, size=(20,20))
+weights3 = np.random.uniform(low=-0.5, high=0.5, size=(20,20))
+weights4 = np.random.uniform(low=-0.5, high=0.5, size=(20,20))
+weights5 = np.random.uniform(low=-0.5, high=0.5, size=(2,20))
 biases1 = np.zeros((1, 20))
 biases2 = np.zeros((1, 20))
 biases3 = np.zeros((1, 20))
@@ -100,8 +99,8 @@ biases3 = np.array(biases3)
 biases4 = np.array(biases4)
 biases5 = np.array(biases5)
 accuracy_avg = 0
-update_frequency = 20 #this is freqently the drivatives will be added to the weights and biases
-for i in tqdm(range(100)): #arbitrairy number of itterations 
+update_frequency = 1 #this is freqently the drivatives will be added to the weights and biases
+for i in tqdm(range(1000)): #arbitrairy number of itterations 
     counter = 0
     w1=w2=w3=w4=w5=b1=b2=b3=b4=b5 = 0
     accuracy = 0
@@ -109,6 +108,7 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
     for file_path in filepaths:#for every ticker we find the derivatives
         
         x,y = find_values(file_path)
+        
         counter +=1
         z1 = add_w_and_b(x,weights1,biases1)
         hidden1 = relu(z1)
@@ -164,9 +164,10 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
         correct_confidences = clipped_input[range(samples),y]
         #finding the accuracy
         for x in correct_confidences:
-            if x < 0.5:
+            if x > 0.5:
                 accuracy += 1
-        accuracy_avg += accuracy/len(y)
+        accuracy_avg += accuracy/len(correct_confidences)
+        
         accuracy = 0
         
         
@@ -183,10 +184,8 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
 
         #updating the weights and biases
         if counter % update_frequency == 0:
-            #print(w1,w2,w3,w4,w5,b1,b2,b3,b4,b5)
-            
-            helper -= (w1/update_frequency)*step_size
-            
+            #print(w1,w2,w3,w4,w5,b1,b2,b3,b4,b5)         
+              
             weights1 -= (w1/update_frequency)*step_size
             weights2 -= (w2/update_frequency)*step_size
             weights3 -= (w3/update_frequency)*step_size
@@ -199,14 +198,15 @@ for i in tqdm(range(100)): #arbitrairy number of itterations
             biases5 -= (b5/update_frequency)*step_size
             w1=w2=w3=w4=w5=b1=b2=b3=b4=b5 = 0
     
-    accuracy_avg = accuracy_avg/len(filepaths)
-   
-    print("\n",accuracy_avg)
-    accuracy_avg = 0
-    if i % 10 == 0:
-        step_size *= 1
+    accuracy_a = accuracy_avg/len(filepaths)
+    print(accuracy_a)
     
-    if i% 6 == 0:
+    accuracy_avg = 0
+    
+    if i % 10 == 0:
+        step_size *= 0.98
+    
+    if i% 20 == 0:
         
         #print("\n",accuracy_avg/5)
         

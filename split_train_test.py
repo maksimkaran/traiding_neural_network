@@ -11,17 +11,20 @@ def find_values(file_path):
     except Exception as e:
             print(f'Error with filepath {file_path}', repr(e))
     return data
-filepaths = [file for file in glob.glob(f'D:/bruh/trading_deep_learning/stock_data/*.csv')]
+filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_network/stock_data/*.csv')]
 for file_path in tqdm(filepaths):
     file_name_without_extension = os.path.splitext(os.path.basename(file_path))[0]
 
     X = find_values(file_path)
     df_train, df_test = train_test_split(X,test_size=0.2, random_state=1)
-    df_train.drop('Unnamed: 0', axis=1, inplace=True)
-    df_test.drop('Unnamed: 0', axis=1, inplace=True)
+    try:
+        df_train.drop('Unnamed: 0', axis=1, inplace=True)
+        df_test.drop('Unnamed: 0', axis=1, inplace=True)
+    except:
+         print("no unanmed column")
     df_train.drop('time', axis=1, inplace=True)
     df_test.drop('time', axis=1, inplace=True)
     df_train.drop('spread', axis=1, inplace=True)
     df_test.drop('spread', axis=1, inplace=True)
-    df_test.to_csv(f"D:/bruh/trading_deep_learning/test_data/{file_name_without_extension}_test.csv")
-    df_train.to_csv(f"D:/bruh/trading_deep_learning/train_data/{file_name_without_extension}_train.csv")
+    df_test.to_csv(f"D:/bruh/trade_copy/traiding_neural_network/test_data/{file_name_without_extension}_test.csv")
+    df_train.to_csv(f"D:/bruh/trade_copy/traiding_neural_network/train_data/{file_name_without_extension}_train.csv")

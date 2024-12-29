@@ -11,7 +11,7 @@ import math
 from sklearn.preprocessing import StandardScaler
 import os
 def get_candle_data():
-    filepaths = [file for file in glob.glob(f'D:/bruh/trading_deep_learning/stock_data/*.csv')]
+    filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_network/stock_data/*.csv')]
     for p in tqdm(filepaths):
         try:
             candle_data = pd.read_csv(p)
@@ -33,10 +33,10 @@ def get_candle_data():
         candle_data['buy'] = 0
         candle_data = candle_data.astype({'buy':int})
         symbol = p.split('\\')[-1].split('.')[0]
-        candle_data.to_csv(f'D:/bruh/trading_deep_learning/stock_data/{symbol}.csv')
+        candle_data.to_csv(f'D:/bruh/trade_copy/traiding_neural_network/stock_data//{symbol}.csv')
 
 def get_buy_signal_and_standardise():
-    filepaths = [file for file in glob.glob(f'D:/bruh/trading_deep_learning/stock_data/*.csv')]
+    filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_network/stock_data/*.csv')]
     i = 0
  
     global X
@@ -56,7 +56,7 @@ def get_buy_signal_and_standardise():
         long_entry_condition = pd.Series([])
         for i in candle_data.index:
             try:
-                long_entry_condition = candle_data.shift(-2).close+(candle_data.open*0.02) > candle_data.open
+                long_entry_condition = candle_data.shift(-2).close+(candle_data.open*0.04) > candle_data.open
             except:
                 print("final trades")
 
@@ -144,6 +144,6 @@ if(input("da li preuzimas tikere? Y/N ") == 'Y'):
                 #candle_data.insert(column='datetime',value=date_time)
                 candle_data = candle_data.set_index('datetime', inplace=False)
 
-                candle_data.to_csv(f'D:/bruh/trading_deep_learning/stock_data/{s}.csv')
+                candle_data.to_csv(f'D:/bruh/trade_copy/traiding_neural_network/stock_data/{s}.csv')
     get_candle_data()
 get_buy_signal_and_standardise()
