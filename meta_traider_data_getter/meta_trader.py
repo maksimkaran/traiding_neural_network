@@ -22,7 +22,7 @@ def get_candle_data():
 
         candle_data['RSI'] = TA.RSI(candle_data,14)
         candle_data['ATR'] = TA.ATR(candle_data,14)
-
+        candle_data['ROC'] = TA.ROC(candle_data,period=14)
         candle_data['upper_gap'] = 1.2 * candle_data.ATR 
         candle_data['lower_gap'] = 1.6 * candle_data.ATR
         bbands = TA.BBANDS(candle_data,30,std_multiplier=2)
@@ -56,7 +56,7 @@ def get_buy_signal_and_standardise():
         long_entry_condition = pd.Series([])
         for i in candle_data.index:
             try:
-                long_entry_condition = candle_data.shift(-2).close+(candle_data.open*0.04) > candle_data.open
+                long_entry_condition = candle_data.shift(-5).close+(candle_data.open*0.04) > candle_data.open
             except:
                 print("final trades")
 
@@ -87,11 +87,6 @@ def get_buy_signal_and_standardise():
         column_to_exclude = 'buy'
 
         # Select columns to scale (all columns except 'C')
-        columns_to_scale = X.columns[X.columns != column_to_exclude]
-        scaler = StandardScaler()
-        scaler.fit(X[columns_to_scale])
-        standardised_data = scaler.transform(X[columns_to_scale])
-        X[columns_to_scale] = standardised_data 
         X.drop(columns = 'Unnamed: 0',axis = 1, inplace=True)
         X.to_csv(p)
         if remover == True:
@@ -131,9 +126,9 @@ mt5.login(login,password,server)
 tickers = pd.read_csv('tickers.csv')
 symbols = tickers['ACT Symbol'].unique()
 num = 0
-bars_to_fetch = 40
-bars_to_scan = 150
-start_date = datetime(2024, 10, 1)
+bars_to_fetch = 300
+bars_to_scan = 1000
+start_date = datetime(2025, 1, 1)
 start_timestamp = int(start_date.timestamp())
 if(input("da li preuzimas tikere? Y/N ") == 'Y'):
     for s in tqdm(symbols[0:506]):# C:\Users\maksim\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\bases\MetaQuotes-Demo\history

@@ -77,15 +77,15 @@ filepaths = [file for file in glob.glob(f'D:/bruh/trade_copy/traiding_neural_net
 step_size = 0.00001
 
 #randomly initializing the weights and setting the biases to 0
-weights1 = np.random.uniform(low=-0.5, high=0.5, size=(20,14))
-weights2 = np.random.uniform(low=-0.5, high=0.5, size=(20,20))
-weights3 = np.random.uniform(low=-0.5, high=0.5, size=(20,20))
-weights4 = np.random.uniform(low=-0.5, high=0.5, size=(20,20))
-weights5 = np.random.uniform(low=-0.5, high=0.5, size=(2,20))
-biases1 = np.zeros((1, 20))
-biases2 = np.zeros((1, 20))
-biases3 = np.zeros((1, 20))
-biases4 = np.zeros((1, 20))
+weights1 = np.random.uniform(low=-0.5, high=0.5, size=(40,15))
+weights2 = np.random.uniform(low=-0.5, high=0.5, size=(40,40))
+weights3 = np.random.uniform(low=-0.5, high=0.5, size=(40,40))
+weights4 = np.random.uniform(low=-0.5, high=0.5, size=(40,40))
+weights5 = np.random.uniform(low=-0.5, high=0.5, size=(2,40))
+biases1 = np.zeros((1, 40))
+biases2 = np.zeros((1, 40))
+biases3 = np.zeros((1, 40))
+biases4 = np.zeros((1, 40))
 biases5 = np.zeros((1, 2))
 
 weights1 = np.array(weights1)
@@ -99,8 +99,8 @@ biases3 = np.array(biases3)
 biases4 = np.array(biases4)
 biases5 = np.array(biases5)
 accuracy_avg = 0
-update_frequency = 1 #this is freqently the drivatives will be added to the weights and biases
-for i in tqdm(range(1000)): #arbitrairy number of itterations 
+update_frequency = 3 #this is freqently the drivatives will be added to the weights and biases
+for i in tqdm(range(30000)): #arbitrairy number of itterations 
     counter = 0
     w1=w2=w3=w4=w5=b1=b2=b3=b4=b5 = 0
     accuracy = 0
@@ -204,7 +204,7 @@ for i in tqdm(range(1000)): #arbitrairy number of itterations
     accuracy_avg = 0
     
     if i % 10 == 0:
-        step_size *= 0.98
+        step_size *= 1
     
     if i% 20 == 0:
         
